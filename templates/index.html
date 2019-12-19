@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Me Hungry</title>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <!-- <link rel="stylesheet" href="../css/reset.css"> -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.3/dist/leaflet.css"
+  integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
+  crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.3.3/dist/leaflet.js"
+  integrity="sha512-tAGcCfR4Sc5ZP5ZoVz0quoZDYX5aCtEm/eu1KhSLj2c9eFrylXZknQYmxUssFaVJKvvc0dJQixhGjG2yXWiV9Q=="
+  crossorigin=""></script>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+  <!-- <link rel="stylesheet" href="../css/styles.css"> -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <!-- Our CSS -->
+  <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
+
+</head>
+
+<body>
+  <div class="stuff">
+  <!-- ****************************** Nav Bar ****************************** -->
+  <nav class="navbar navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Where do we eat ???</a>
+      </div>
+    </div>
+  </nav>
+  <!-- ****************************** CONTAINERS ****************************** -->
+  <div class="container top_marg">
+    <div class="row-fluid">
+<!--       <div class="col-md-1"> 
+      </div> -->
+      <!-- ******************** Left Column ******************** --> 
+      <div class="col-md-8"> 
+        <div id="map"></div>
+      </div>
+      <!-- ******************** Right Column ******************** -->
+      <div class="col-md-4">
+        <div class="jumbotron">
+          <div class="container">
+
+            <row>
+              <h2 class="display-4">Input Filter:</h2>
+            </row>
+
+            <row>
+              
+                <div class="form-group">
+                  
+                  <h7>weighted_rating = rating * Weight_A - Price_level * Weight_B</h7>
+                  <br>
+                  <br>
+
+                  <label for="cat_label">Categories</label>
+                  <input type="text" class="form-control" name="categories" id="categories_id" aria-describedby="cat_Help" placeholder="Type categories">
+                  <small id="cat_Help" class="form-text text-muted">Enter category here, if more than one please use comma to separate</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="weight_a_label">Weight A</label>
+                  <input type="text" class="form-control" name="weight_a" id="weight_a_id" placeholder="Enter weight A here">
+                </div>
+
+                <div class="form-group">
+                  <label for="weight_b_label">Weight B</label>
+                  <input type="text" class="form-control" name="weight_b" id="weight_b_id" placeholder="Enter weight B here">
+                </div>
+
+                <div class="form-group">
+                  <label for="regular_or_heat_label">Regular or heat map</label>
+                  <input type="text" class="form-control" name="regular_or_heat" id="regular_or_heat_id" placeholder="Regular or heat map">
+                </div>
+
+
+                <hr>
+
+<!--                 <input type="submit" onclick="plotNew()" value="submit" class="btn btn-primary"> -->
+
+              
+              <button onclick="plotNew()">Click me</button>
+            </row>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <br>
+  <br>
+
+  <hr>
+
+  <br>
+  <br>
+
+  <div id="plot"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- API key -->
+  <!-- <script type="text/javascript" src="config.js"></script> -->
+
+  <!-- JS -->
+  <!-- <script type="text/javascript" src="logic.js"></script> -->
+  <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/logic.js') }}"></script>
+</body>
+</html>

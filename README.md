@@ -1,2 +1,2 @@
-# project_2
-project2
+# Group-Project-2
+Group project 2
