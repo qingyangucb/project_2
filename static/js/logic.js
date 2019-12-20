@@ -77,6 +77,36 @@ d3.json(url).then(function(results) {
 
 
 
+function first(restaurant) {
+  var Icon = L.icon({
+    iconUrl: `static/img/first.png`,
+    iconSize:     [120, 120], // size of the icon
+    iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+  });
+  return Icon;
+}
+
+function second(restaurant) {
+  var Icon = L.icon({
+    iconUrl: `static/img/second.png`,
+    iconSize:     [100, 100], // size of the icon
+    iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+  });
+  return Icon;
+}
+
+function third(restaurant) {
+  var Icon = L.icon({
+    iconUrl: `static/img/third.png`,
+    iconSize:     [80, 80], // size of the icon
+    iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+  });
+  return Icon;
+}
+
 function getIcon(restaurant) {
   var Icon = L.icon({
     iconUrl: `static/img/${restaurant.categories}.png`,
@@ -102,61 +132,90 @@ function plotNew() {
   map.removeLayer(layers.Spanish);
   map.removeLayer(layers.Italian);
   map.removeControl(layer_control)
+
   var categories = document.getElementById('categories_id').value;
   categories = categories.split(', ');
   if (categories == '') {categories = ['Chinese', 'Indian', 'Mexican', 'French', 'American', 'Greek', 'Thai', 'Japanese', 'Spanish', 'Italian']};
-  console.log(categories);
-  console.log(categories[0]);
-  console.log(categories[1]);
   var weight_a = document.getElementById('weight_a_id').value;
   if (weight_a == '') {weight_a = 1};
-  // console.log(weight_a);
   var weight_b = document.getElementById('weight_b_id').value;
   if (weight_b == '') {weight_b = 0};
-  // console.log(weight_b);
   var regular_or_heat = document.getElementById('regular_or_heat_id').value;
   if (regular_or_heat == '') {regular_or_heat = 'regular'};
-  // console.log(regular_or_heat);
 
-
-
-  var new_layers=[];
+  var new_layers= [];
   for (var i = 0; i < categories.length; i++) {
     new_layers[categories[i]] = new L.LayerGroup();
   }
-  console.log(new_layers);
+
+  var heat_layer = [];
 
   var weighted_ratings = [];
+  var a = 0;
+  var b = 0;
+  var c = 0;
   var url = '/data_json'
 
   d3.json(url).then(function(results) {
     var responses = results.data;
-    // for (var j = 0; j < categories.length; j++) {
-      for (var i = 0; i < responses.length; i++) {
 
+    if (regular_or_heat == 'regular') {
+      for (var i = 0; i < responses.length; i++) {
         if (categories.includes(responses[i].categories)) {
           var response = responses[i];
           var category = response.categories;
-          // console.log(category);
-          response.rating = response.rating * weight_a - weight_b;
+          response.rating = response.rating * weight_a - response.price.length * weight_b;
+          if (responses[i].rating >= responses[c].rating && responses[i].rating >= responses[b].rating && responses[i].rating >= responses[a].rating) {a=i;}
+          else if (responses[i].rating >= responses[c].rating && responses[i].rating >= responses[b].rating && responses[i].rating <= responses[a].rating) {b=i;}
+          else if (responses[i].rating >= responses[c].rating && responses[i].rating <= responses[b].rating && responses[i].rating <= responses[a].rating) {c=i;}
+          console.log(responses[i].rating);
+          console.log(responses[a].rating);
+          console.log(responses[b].rating);
+          console.log(responses[c].rating);
+          console.log('break');
+
           var newMarker = L.marker([response.latitude, response.longitude], {
             icon: getIcon(response)
           });
-
           newMarker.addTo(new_layers[category]);
-
           newMarker.bindPopup(response.name + "<br> rating: " + response.rating);
         }
+
       }
-    // }
-  });
+      var newMarker = L.marker([responses[a].latitude, responses[a].longitude], {
+        icon: first(responses[a])
+      });
+      newMarker.addTo(new_layers[category]);
+      newMarker.bindPopup(responses[a].name + "<br> rating: " + responses[a].rating);
 
-  var new_layer_control = L.control.layers(null, new_layers).addTo(map);
-  // var map = L.map("map", {
-  //   center: [37.754135, -122.447331],
-  //   zoom: 12,
+      var newMarker = L.marker([responses[b].latitude, responses[b].longitude], {
+        icon: second(responses[b])
+      });
+      newMarker.addTo(new_layers[category]);
+      newMarker.bindPopup(responses[b].name + "<br> rating: " + responses[b].rating);
 
-  // });
+      var newMarker = L.marker([responses[c].latitude, responses[c].longitude], {
+        icon: third(responses[c])
+      });
+      newMarker.addTo(new_layers[category]);
+      newMarker.bindPopup(responses[c].name + "<br> rating: " + responses[c].rating);
+      var new_layer_control = L.control.layers(null, new_layers).addTo(map);    
+    }
 
+    else if (regular_or_heat == 'heat') {
+      for (var i = 0; i < responses.length; i++) {
+        if (categories.includes(responses[i].categories)) {
+          var response = responses[i];
+          var category = response.categories;
+          response.rating = response.rating * weight_a - response.price.length * weight_b;
 
-}
+          heat_layer.push([response.latitude, response.longitude]);
+        }
+      }
+      var heat = L.heatLayer(heat_layer, {
+        radius: 20,
+        blur: 35
+      }).addTo(map); 
+    }
+  })
+}  
