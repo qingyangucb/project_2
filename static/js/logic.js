@@ -70,7 +70,7 @@ d3.json(url).then(function(results) {
     
     newMarker.addTo(layers[category]);
 
-    newMarker.bindPopup(response.name + "<br> rating: " + response.rating);
+    newMarker.bindPopup(response.name + "<br> rating: " + response.rating + "<br>Address :" + response.location);
   }
 
 });
@@ -107,10 +107,20 @@ function third(restaurant) {
   return Icon;
 }
 
+function getIconScaled(restaurant, ratio) {
+  var Icon = L.icon({
+    iconUrl: `static/img/${restaurant.categories}.png`,
+    iconSize:     [(restaurant.ratings-ratio*1.2)*15/ratio, (restaurant.ratings-ratio*1.2)*15/ratio], // size of the icon
+    iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+    popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+  });
+  return Icon;
+}
+
 function getIcon(restaurant) {
   var Icon = L.icon({
     iconUrl: `static/img/${restaurant.categories}.png`,
-    iconSize:     [(restaurant.rating-1.5)*15, (restaurant.rating-1.5).rating*15], // size of the icon
+    iconSize:     [(restaurant.rating-1.2)*15, (restaurant.rating-1.2).rating*15], // size of the icon
     iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
     popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
   });
@@ -151,6 +161,7 @@ function plotNew() {
   var heat_layer = [];
 
   var weighted_ratings = [];
+  var ratio = 0;
   var a = 0;
   var b = 0;
   var c = 0;
@@ -159,63 +170,70 @@ function plotNew() {
   d3.json(url).then(function(results) {
     var responses = results.data;
 
-    if (regular_or_heat == 'regular') {
-      for (var i = 0; i < responses.length; i++) {
-        if (categories.includes(responses[i].categories)) {
-          var response = responses[i];
-          var category = response.categories;
-          response.rating = response.rating * weight_a - response.price.length * weight_b;
-          if (responses[i].rating >= responses[c].rating && responses[i].rating >= responses[b].rating && responses[i].rating >= responses[a].rating) {a=i;}
-          else if (responses[i].rating >= responses[c].rating && responses[i].rating >= responses[b].rating && responses[i].rating <= responses[a].rating) {b=i;}
-          else if (responses[i].rating >= responses[c].rating && responses[i].rating <= responses[b].rating && responses[i].rating <= responses[a].rating) {c=i;}
-          console.log(responses[i].rating);
-          console.log(responses[a].rating);
-          console.log(responses[b].rating);
-          console.log(responses[c].rating);
-          console.log('break');
-
-          var newMarker = L.marker([response.latitude, response.longitude], {
-            icon: getIcon(response)
-          });
-          newMarker.addTo(new_layers[category]);
-          newMarker.bindPopup(response.name + "<br> rating: " + response.rating);
-        }
-
-      }
-      var newMarker = L.marker([responses[a].latitude, responses[a].longitude], {
-        icon: first(responses[a])
-      });
-      newMarker.addTo(new_layers[category]);
-      newMarker.bindPopup(responses[a].name + "<br> rating: " + responses[a].rating);
-
-      var newMarker = L.marker([responses[b].latitude, responses[b].longitude], {
-        icon: second(responses[b])
-      });
-      newMarker.addTo(new_layers[category]);
-      newMarker.bindPopup(responses[b].name + "<br> rating: " + responses[b].rating);
-
-      var newMarker = L.marker([responses[c].latitude, responses[c].longitude], {
-        icon: third(responses[c])
-      });
-      newMarker.addTo(new_layers[category]);
-      newMarker.bindPopup(responses[c].name + "<br> rating: " + responses[c].rating);
-      var new_layer_control = L.control.layers(null, new_layers).addTo(map);    
-    }
-
-    else if (regular_or_heat == 'heat') {
-      for (var i = 0; i < responses.length; i++) {
-        if (categories.includes(responses[i].categories)) {
-          var response = responses[i];
-          var category = response.categories;
-          response.rating = response.rating * weight_a - response.price.length * weight_b;
-
-          heat_layer.push([response.latitude, response.longitude]);
+    for (var i = 0; i < responses.length; i++) {
+      if (categories.includes(responses[i].categories)) {
+        var category = responses[i].categories;
+        responses[i].ratings = responses[i].rating * weight_a - responses[i].price.length * weight_b;
+        if (responses[i].ratings <= 0) {responses[i].ratings = 0;}
+          // console.log(responses[i].ratings);
+          if (responses[i].ratings >= responses[c].ratings && responses[i].ratings >= responses[b].ratings && responses[i].ratings > responses[a].ratings) {a=i;}
+          else if (responses[i].ratings >= responses[c].ratings && responses[i].ratings >= responses[b].ratings) {b=i;}
+          else if (responses[i].ratings >= responses[c].ratings) {c=i;}
+          // console.log(`${i}'th iteration: ${responses[i].rating}`);
+          // console.log(`${i}'th iteration a: ${responses[a].rating}`);
+          // console.log(`${i}'th iteration b: ${responses[b].rating}`);
+          // console.log(`${i}'th iteration c: ${responses[c].rating}`);
+          // console.log('--------------');
         }
       }
-      var heat = L.heatLayer(heat_layer, {
-        radius: 20,
-        blur: 35
-      }).addTo(map); 
-    }
-  })
+
+      ratio = responses[a].ratings / responses[a].rating;
+
+      if (regular_or_heat == 'regular') {
+        for (var i = 0; i < responses.length; i++) {
+          if (categories.includes(responses[i].categories)) {
+            var category = responses[i].categories;
+            var newMarker = L.marker([responses[i].latitude, responses[i].longitude], {
+              icon: getIconScaled(responses[i], ratio)
+            });
+            newMarker.addTo(new_layers[category]);
+            newMarker.bindPopup(responses[i].name + "<br> rating: " + responses[i].ratings  + "<br>Address :" + responses[i].location);
+          }
+        }
+
+        var newMarker = L.marker([responses[a].latitude, responses[a].longitude], {
+          icon: first(responses[a])
+        });
+        newMarker.addTo(new_layers[category]);
+        newMarker.bindPopup("First Place: " + responses[a].name + "<br>rating: " + responses[a].ratings + "<br>Type: " + responses[a].categories + "<br>Address :" + responses[a].location);
+
+        var newMarker = L.marker([responses[b].latitude, responses[b].longitude], {
+          icon: second(responses[b])
+        });
+        newMarker.addTo(new_layers[category]);
+        newMarker.bindPopup("Second Place: " + responses[b].name + "<br>rating: " + responses[b].ratings + "<br>Type: " + responses[b].categories + "<br>Address :" + responses[b].location);
+
+        var newMarker = L.marker([responses[c].latitude, responses[c].longitude], {
+          icon: third(responses[c])
+        });
+        newMarker.addTo(new_layers[category]);
+        newMarker.bindPopup("Third Place: " + responses[c].name + "<br>rating: " + responses[c].ratings + "<br>Type: " + responses[c].categories + "<br>Address :" + responses[c].location);
+        var new_layer_control = L.control.layers(null, new_layers).addTo(map);    
+      }
+
+      else if (regular_or_heat == 'heat') {
+        for (var i = 0; i < responses.length; i++) {
+          if (categories.includes(responses[i].categories)) {
+            var category = responses[i].categories;
+            responses[i].ratings = responses[i].rating * weight_a - responses[i].price.length * weight_b;
+
+            heat_layer.push([responses[i].latitude, responses[i].longitude, responses[i].ratings/1.5]);
+          }
+        }
+        var heat = L.heatLayer(heat_layer, {
+          radius: 35,
+          blur: 5
+        }).addTo(map); 
+      }
+    })
 }  
